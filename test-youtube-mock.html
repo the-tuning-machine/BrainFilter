@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mock YouTube - Test BrainFilter</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f9f9f9;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      color: #ff0000;
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+
+    .info {
+      background: #e3f2fd;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      border-left: 4px solid #2196f3;
+    }
+
+    .video-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    /* Structure similaire à YouTube */
+    ytd-rich-item-renderer {
+      display: block;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+      transition: all 0.2s;
+    }
+
+    ytd-rich-item-renderer:hover {
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+
+    ytd-rich-item-renderer[data-brainfilter-filtered] {
+      opacity: 0.3;
+      border: 2px dashed #f44336;
+    }
+
+    .thumbnail {
+      width: 100%;
+      height: 180px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 48px;
+    }
+
+    .video-details {
+      padding: 12px;
+    }
+
+    h3 {
+      margin: 0 0 8px 0;
+      font-size: 14px;
+      font-weight: 500;
+      line-height: 1.4;
+    }
+
+    h3 a {
+      color: #030303;
+      text-decoration: none;
+    }
+
+    h3 a:hover {
+      color: #065fd4;
+    }
+
+    .category-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-top: 8px;
+    }
+
+    .category-jeux { background: #ffebee; color: #c62828; }
+    .category-divertissement { background: #fff3e0; color: #ef6c00; }
+    .category-shorts { background: #fce4ec; color: #c2185b; }
+    .category-math { background: #e3f2fd; color: #1565c0; }
+    .category-sciences { background: #e8f5e9; color: #2e7d32; }
+    .category-documentaires { background: #f3e5f5; color: #6a1b9a; }
+    .category-philosophie { background: #e0f2f1; color: #00695c; }
+    .category-musique { background: #fff9c4; color: #f57f17; }
+
+    .stats {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      min-width: 200px;
+    }
+
+    .stats h3 {
+      margin: 0 0 10px 0;
+      font-size: 16px;
+    }
+
+    .stats-item {
+      display: flex;
+      justify-content: space-between;
+      margin: 5px 0;
+      font-size: 14px;
+    }
+
+    .filtered {
+      color: #f44336;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>📺 Mock YouTube - Test BrainFilter</h1>
+
+  <div class="info">
+    <strong>🎯 Instructions :</strong>
+    <ol>
+      <li>Cette page simule YouTube avec des vidéos de test</li>
+      <li>L'extension BrainFilter devrait automatiquement filtrer les vidéos</li>
+      <li>Ouvrez la console (F12) pour voir les logs</li>
+      <li>Les vidéos filtrées deviennent transparentes avec une bordure rouge</li>
+    </ol>
+    <p><strong>Configuration recommandée :</strong> Popup → Heures 2h-3h → Catégories: jeux, divertissement, shorts</p>
+  </div>
+
+  <div class="stats">
+    <h3>📊 Statistiques</h3>
+    <div class="stats-item">
+      <span>Total:</span>
+      <span id="total-videos">0</span>
+    </div>
+    <div class="stats-item">
+      <span>Filtrées:</span>
+      <span id="filtered-videos" class="filtered">0</span>
+    </div>
+  </div>
+
+  <div class="video-grid">
+    <!-- JEUX -->
+    <ytd-rich-item-renderer data-category="jeux">
+      <div class="thumbnail">🎮</div>
+      <div class="video-details">
+        <h3>
+          <a href="#" title="Minecraft gameplay FR #1">Minecraft gameplay FR #1</a>
+        </h3>
+        <span class="category-badge category-jeux">Jeux</span>
+      </div>
+    </ytd-rich-item-renderer>
+
+    <ytd-rich-item-renderer data-category="jeux">
+      <div class="thumbnail">🎮</div>
+      <div class="video-details">
+        <h3>
+          <a href="#" title="JE TESTE Fortnite Battle Royale 🔥">JE TESTE Fortnite Battle Royale 🔥</a>
+        </h3>
+        <span class="category-badge category-jeux">Jeux</span>
+      </div>
+    </ytd-rich-item-renderer>
+
+    <ytd-rich-item-renderer data-category="jeux">
+      <div class="thumbnail">🎮</div>
+      <div class="video-details">
+        <h3>
+          <a href="#" title="TOP 10 KILLS dans Valorant">TOP 10 KILLS dans Valorant</a>
+        </h3>
+        <span class="category-badge category-jeux">Jeux</span>
+      </div>
+    </ytd-rich-item-renderer>
+
+    <!-- DIVERTISSEMENT -->
+    <ytd-rich-item-renderer data-category="divertissement">
+      <div class="thumbnail">😂</div>
+      <div class="video-details">
+        <h3>
+          <a href="#" title="TOP 10 FAILS COMPILATION">TOP 10 FAILS COMPILATION</a>
+        </h3>
+        <span class="category-badge category-divertissement">Divertissement</span>
+      </div>
+    </ytd-rich-item-renderer>
+
+    <ytd-rich-item-renderer data-category="divertissement">
+      <div class="thumbnail">😂</div>
+      <div class="video-details">
+        <h3>
+          <a href="#" title="PRANK : Il croit que je suis son ami">PRANK : Il croit que je suis son ami</a>
+        </h3>
+        <span class="category-badge category-divertissement">Divertissement</span>
+      </div>
+    </ytd-rich-item-renderer>
+
+    <ytd-rich-item-renderer data-category="divertissement">
+      <div class="thumbnail">😂</div>
+      <div class="video-details">
+        <h3>
+          <a href="#" title="VLOG : MA JOURNÉE INCROYABLE">VLOG : MA JOURNÉE INCROYABLE</a>
+        </h3>
+        <span class="category-badge category-divertissement">Divertissement</span>
+      </div>
+    </ytd-rich-item-renderer>
+
+    <!-- SHORTS -->
+    <ytd-rich-item-renderer data-category="shorts">
+      <div class="thumbnail">📱</div>
+      <div class="video-details">
+        <h3>
+          <a href="#" title="Incroyable astuce #shorts">Incroyable astuce #shorts</a>
+        </h3>
+        <span class="category-badge category-shorts">Shorts</span>
+      </div>
+    </ytd-rich-item-renderer>
+
+    <ytd-rich-item-renderer data-category="shorts">
+      <div class="thumbnail">📱</div>
+      <div class="video-details">
+        <h3>
+          <a href="#" title="Wait for it... #shorts">Wait for it... #shorts</a>
+        </h3>
+        <span class="category-badge category-shorts">Shorts</span>
+      </div>
+    </ytd-rich-item-renderer>
+
+    <ytd-rich-item-renderer data-category="shorts">
+      <div class="thumbnail">📱</div>
+      <div class="video-details">
+        <h3>
+          <a href="#" title="POV: Tu es étudiant #shorts">POV: Tu es étudiant #shorts</a>
+        </h3>
+        <span class="category-badge category-shorts">Shorts</span>
+      </div>
+    </ytd-rich-item-renderer>
+
+    <!-- MATH -->
+    <ytd-rich-item-renderer data-category="math">
+      <div class="thumbnail">🔢</div>
+      <div class="video-details">
+        <h3>
+          <a href="#" title="Les dérivées expliquées simplement">Les dérivées expliquées simplement</a>
+        </h3>
+        <span class="category-badge category-math">Math</span>
+      </div>
+    </ytd-rich-item-renderer>
+
+    <ytd-rich-item-renderer data-category="math">
+      <div class="thumbnail">🔢</div>
+      <div class="video-details">
+        <h3>
+          <a href="#" title="Comprendre les intégrales en 10 minutes">Comprendre les intégrales en 10 minutes</a>
+        </h3>
+        <span class="category-badge category-math">Math</span>
+      </div>
+    </ytd-rich-item-renderer>
+
+    <!-- SCIENCES -->
+    <ytd-rich-item-renderer data-category="sciences">
+      <div class="thumbnail">🔬</div>
+      <div class="video-details">
+        <h3>
+          <a href="#" title="Comment fonctionne un trou noir ?">Comment fonctionne un trou noir ?</a>
+        </h3>
+        <span class="category-badge category-sciences">Sciences</span>
+      </div>
+    </ytd-rich-item-renderer>
+
+    <ytd-rich-item-renderer data-category="sciences">
+      <div class="thumbnail">🔬</div>
+      <div class="video-details">
+        <h3>
+          <a href="#" title="La physique quantique expliquée">La physique quantique expliquée</a>
+        </h3>
+        <span class="category-badge category-sciences">Sciences</span>
+      </div>
+    </ytd-rich-item-renderer>
+
+    <!-- DOCUMENTAIRES -->
+    <ytd-rich-item-renderer data-category="documentaires">
+      <div class="thumbnail">📺</div>
+      <div class="video-details">
+        <h3>
+          <a href="#" title="Documentaire sur l'Égypte ancienne">Documentaire sur l'Égypte ancienne</a>
+        </h3>
+        <span class="category-badge category-documentaires">Documentaires</span>
+      </div>
+    </ytd-rich-item-renderer>
+
+    <ytd-rich-item-renderer data-category="documentaires">
+      <div class="thumbnail">📺</div>
+      <div class="video-details">
+        <h3>
+          <a href="#" title="L'histoire de la Seconde Guerre mondiale">L'histoire de la Seconde Guerre mondiale</a>
+        </h3>
+        <span class="category-badge category-documentaires">Documentaires</span>
+      </div>
+    </ytd-rich-item-renderer>
+
+    <!-- PHILOSOPHIE -->
+    <ytd-rich-item-renderer data-category="philosophie">
+      <div class="thumbnail">💭</div>
+      <div class="video-details">
+        <h3>
+          <a href="#" title="Introduction à la philosophie de Kant">Introduction à la philosophie de Kant</a>
+        </h3>
+        <span class="category-badge category-philosophie">Philosophie</span>
+      </div>
+    </ytd-rich-item-renderer>
+
+    <ytd-rich-item-renderer data-category="philosophie">
+      <div class="thumbnail">💭</div>
+      <div class="video-details">
+        <h3>
+          <a href="#" title="Nietzsche et la morale">Nietzsche et la morale</a>
+        </h3>
+        <span class="category-badge category-philosophie">Philosophie</span>
+      </div>
+    </ytd-rich-item-renderer>
+
+    <!-- MUSIQUE -->
+    <ytd-rich-item-renderer data-category="musique">
+      <div class="thumbnail">🎵</div>
+      <div class="video-details">
+        <h3>
+          <a href="#" title="Beethoven - Symphony No. 5">Beethoven - Symphony No. 5</a>
+        </h3>
+        <span class="category-badge category-musique">Musique</span>
+      </div>
+    </ytd-rich-item-renderer>
+
+    <ytd-rich-item-renderer data-category="musique">
+      <div class="thumbnail">🎵</div>
+      <div class="video-details">
+        <h3>
+          <a href="#" title="Relaxation Music Mix 2024">Relaxation Music Mix 2024</a>
+        </h3>
+        <span class="category-badge category-musique">Musique</span>
+      </div>
+    </ytd-rich-item-renderer>
+  </div>
+
+  <script>
+    // Mettre à jour les stats
+    function updateStats() {
+      const total = document.querySelectorAll('ytd-rich-item-renderer').length;
+      const filtered = document.querySelectorAll('ytd-rich-item-renderer[data-brainfilter-filtered]').length;
+
+      document.getElementById('total-videos').textContent = total;
+      document.getElementById('filtered-videos').textContent = filtered;
+    }
+
+    // Observer les changements
+    const observer = new MutationObserver(updateStats);
+    observer.observe(document.body, {
+      attributes: true,
+      subtree: true,
+      attributeFilter: ['data-brainfilter-filtered']
+    });
+
+    // Stats initiales
+    updateStats();
+
+    // Log pour debug
+    console.log('📺 Mock YouTube chargé');
+    console.log('Vidéos totales:', document.querySelectorAll('ytd-rich-item-renderer').length);
+  </script>
+</body>
+</html>

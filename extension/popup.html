@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BrainFilter - Configuration</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      width: 350px;
+      padding: 16px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 14px;
+      color: #333;
+    }
+
+    h1 {
+      font-size: 18px;
+      margin-bottom: 16px;
+      color: #1a73e8;
+    }
+
+    .section {
+      margin-bottom: 20px;
+    }
+
+    .section-title {
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #555;
+    }
+
+    label {
+      display: flex;
+      align-items: center;
+      padding: 8px 0;
+      cursor: pointer;
+    }
+
+    input[type="checkbox"] {
+      margin-right: 8px;
+      cursor: pointer;
+    }
+
+    .toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px;
+      background: #f1f3f4;
+      border-radius: 8px;
+      margin-bottom: 16px;
+    }
+
+    .toggle-label {
+      font-weight: 600;
+    }
+
+    .switch {
+      position: relative;
+      width: 48px;
+      height: 24px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: 0.3s;
+      border-radius: 24px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: 0.3s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: #1a73e8;
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(24px);
+    }
+
+    .time-range {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-top: 8px;
+    }
+
+    .time-range input {
+      flex: 1;
+      padding: 6px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+
+    .categories {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .category-item {
+      padding: 6px 8px;
+      border-radius: 4px;
+      transition: background 0.2s;
+    }
+
+    .category-item:hover {
+      background: #f1f3f4;
+    }
+
+    .status {
+      padding: 12px;
+      border-radius: 8px;
+      margin-top: 16px;
+      text-align: center;
+      font-size: 12px;
+    }
+
+    .status.enabled {
+      background: #e6f4ea;
+      color: #137333;
+    }
+
+    .status.disabled {
+      background: #fce8e6;
+      color: #c5221f;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      background: #1a73e8;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+
+    button:hover {
+      background: #1557b0;
+    }
+
+    .info {
+      font-size: 12px;
+      color: #666;
+      margin-top: 4px;
+      line-height: 1.4;
+    }
+  </style>
+</head>
+<body>
+  <h1>🧠 BrainFilter</h1>
+
+  <div class="toggle">
+    <span class="toggle-label">Activer le filtrage</span>
+    <label class="switch">
+      <input type="checkbox" id="enabled">
+      <span class="slider"></span>
+    </label>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Horaire autorisé (distraction permise)</div>
+    <p class="info">Les vidéos de distraction ne seront pas filtrées pendant cette plage horaire.</p>
+    <div class="time-range">
+      <input type="number" id="hourStart" min="0" max="23" placeholder="20">
+      <span>h à</span>
+      <input type="number" id="hourEnd" min="0" max="23" placeholder="21">
+      <span>h</span>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Catégories à filtrer</div>
+    <p class="info">Ces catégories seront cachées en dehors des heures autorisées.</p>
+    <div class="categories">
+      <label class="category-item">
+        <input type="checkbox" class="category" value="jeux">
+        🎮 Jeux vidéo
+      </label>
+      <label class="category-item">
+        <input type="checkbox" class="category" value="divertissement">
+        😂 Divertissement
+      </label>
+      <label class="category-item">
+        <input type="checkbox" class="category" value="shorts">
+        📱 Shorts
+      </label>
+      <label class="category-item">
+        <input type="checkbox" class="category" value="musique">
+        🎵 Musique
+      </label>
+      <label class="category-item">
+        <input type="checkbox" class="category" value="math">
+        🔢 Mathématiques
+      </label>
+      <label class="category-item">
+        <input type="checkbox" class="category" value="sciences">
+        🔬 Sciences
+      </label>
+      <label class="category-item">
+        <input type="checkbox" class="category" value="documentaires">
+        📺 Documentaires
+      </label>
+      <label class="category-item">
+        <input type="checkbox" class="category" value="philosophie">
+        💭 Philosophie
+      </label>
+    </div>
+  </div>
+
+  <button id="save">Sauvegarder</button>
+
+  <div id="status" class="status" style="display: none;"></div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

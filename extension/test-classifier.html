@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Test du classificateur BrainFilter</title>
+  <style>
+    body {
+      font-family: monospace;
+      padding: 20px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    h1 { color: #1a73e8; }
+    .test-item {
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    .title { font-weight: bold; margin-bottom: 5px; }
+    .result { color: #666; }
+    .category {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 3px;
+      margin-right: 5px;
+      font-size: 12px;
+    }
+    .jeux { background: #ffebee; color: #c62828; }
+    .divertissement { background: #fff3e0; color: #ef6c00; }
+    .shorts { background: #fce4ec; color: #c2185b; }
+    .math { background: #e3f2fd; color: #1565c0; }
+    .sciences { background: #e8f5e9; color: #2e7d32; }
+    .documentaires { background: #f3e5f5; color: #6a1b9a; }
+    .philosophie { background: #e0f2f1; color: #00695c; }
+    .musique { background: #fff9c4; color: #f57f17; }
+    .loading { color: #999; font-style: italic; }
+    .error { color: red; }
+    #status {
+      padding: 10px;
+      background: #f1f3f4;
+      border-radius: 4px;
+      margin: 20px 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>🧠 Test du classificateur BrainFilter</h1>
+
+  <div id="status">Chargement du modèle...</div>
+
+  <div id="results"></div>
+
+  <script>
+    // Version standalone du classificateur (sans chrome.runtime)
+    class YouTubeClassifierStandalone {
+      constructor() {
+        this.model = null;
+        this.ready = false;
+      }
+
+      async loadModel() {
+        try {
+          // Charger depuis le fichier local
+          const response = await fetch('model.json');
+          this.model = await response.json();
+          this.ready = true;
+          console.log('[BrainFilter] Modèle chargé:', this.model.metadata);
+        } catch (error) {
+          console.error('[BrainFilter] Erreur lors du chargement du modèle:', error);
+          throw error;
+        }
+      }
+
+      normalizeText(text) {
+        return text
+          .toLowerCase()
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '');
+      }
+
+      extractNgrams(words, n) {
+        const ngrams = [];
+        for (let i = 0; i <= words.length - n; i++) {
+          ngrams.push(words.slice(i, i + n).join(' '));
+        }
+        return ngrams;
+      }
+
+      tokenize(text) {
+        const normalized = this.normalizeText(text);
+        const words = normalized.match(/\b[\w]+\b/g) || [];
+        const unigrams = words;
+        const bigrams = this.extractNgrams(words, 2);
+        return [...unigrams, ...bigrams];
+      }
+
+      textToTfidf(text) {
+        const tokens = this.tokenize(text);
+        const vocab = this.model.tfidf.vocabulary;
+        const idf = this.model.tfidf.idf;
+
+        const termFreq = {};
+        for (const token of tokens) {
+          if (vocab.hasOwnProperty(token)) {
+            termFreq[token] = (termFreq[token] || 0) + 1;
+          }
+        }
+
+        const docLength = tokens.length || 1;
+        for (const token in termFreq) {
+          termFreq[token] /= docLength;
+        }
+
+        const vector = new Array(this.model.metadata.n_features).fill(0);
+        for (const token in termFreq) {
+          const idx = vocab[token];
+          vector[idx] = termFreq[token] * idf[idx];
+        }
+
+        return vector;
+      }
+
+      dotProduct(v1, v2) {
+        let sum = 0;
+        for (let i = 0; i < v1.length; i++) {
+          sum += v1[i] * v2[i];
+        }
+        return sum;
+      }
+
+      predict(text) {
+        if (!this.ready) {
+          console.error('[BrainFilter] Modèle non chargé');
+          return null;
+        }
+
+        const vector = this.textToTfidf(text);
+        const supportVectors = this.model.svm.support_vectors;
+        const dualCoef = this.model.svm.dual_coef;
+        const intercept = this.model.svm.intercept;
+        const classes = this.model.svm.classes;
+
+        const scores = [];
+        for (let classIdx = 0; classIdx < classes.length; classIdx++) {
+          let score = intercept[classIdx];
+          for (let svIdx = 0; svIdx < supportVectors.length; svIdx++) {
+            const sv = supportVectors[svIdx];
+            const coef = dualCoef[classIdx][svIdx];
+            score += coef * this.dotProduct(sv, vector);
+          }
+          scores.push(score);
+        }
+
+        let maxScore = scores[0];
+        let maxIdx = 0;
+        for (let i = 1; i < scores.length; i++) {
+          if (scores[i] > maxScore) {
+            maxScore = scores[i];
+            maxIdx = i;
+          }
+        }
+
+        return {
+          category: classes[maxIdx],
+          score: maxScore,
+          allScores: scores.map((s, i) => ({ category: classes[i], score: s }))
+        };
+      }
+    }
+
+    const classifier = new YouTubeClassifierStandalone();
+
+    const testTitles = [
+      "Minecraft gameplay FR #1",
+      "JE TESTE Fortnite ! 🔥",
+      "TOP 10 FAILS COMPILATION",
+      "Incroyable astuce #shorts",
+      "Les dérivées expliquées simplement",
+      "Comment fonctionne un trou noir ?",
+      "Documentaire sur l'Égypte ancienne",
+      "Introduction à la philosophie de Kant",
+      "Beethoven - Symphony No. 5",
+      "VLOG : MA JOURNÉE",
+      "POV: Tu es étudiant #shorts",
+      "Comprendre les intégrales en 10 minutes",
+      "La physique quantique expliquée",
+      "L'histoire de la Seconde Guerre mondiale",
+      "Nietzsche et la morale",
+      "Relaxation Music Mix 2024"
+    ];
+
+    async function runTests() {
+      const statusDiv = document.getElementById('status');
+      const resultsDiv = document.getElementById('results');
+
+      try {
+        // Charger le modèle
+        statusDiv.textContent = 'Chargement du modèle...';
+        await classifier.loadModel();
+
+        statusDiv.innerHTML = '✅ Modèle chargé! Test en cours...';
+
+        // Tester chaque titre
+        for (const title of testTitles) {
+          const prediction = classifier.predict(title);
+
+          const itemDiv = document.createElement('div');
+          itemDiv.className = 'test-item';
+
+          itemDiv.innerHTML = `
+            <div class="title">${title}</div>
+            <div class="result">
+              → Catégorie: <span class="category ${prediction.category}">${prediction.category}</span>
+              (score: ${prediction.score.toFixed(2)})
+            </div>
+          `;
+
+          resultsDiv.appendChild(itemDiv);
+        }
+
+        statusDiv.innerHTML = '✅ Tests terminés! Voir les résultats ci-dessous.';
+
+      } catch (error) {
+        statusDiv.innerHTML = `<span class="error">❌ Erreur: ${error.message}</span>`;
+        console.error(error);
+      }
+    }
+
+    // Lancer les tests au chargement
+    runTests();
+  </script>
+</body>
+</html>
