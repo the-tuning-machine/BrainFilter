@@ -11,8 +11,9 @@ ENV/
 dist/
 build/
 
-# Dataset (trop volumineux, peut être régénéré)
+# Dataset et résultats (trop volumineux, peuvent être régénérés)
 data/raw/*.csv
+data/evaluation_results/
 
 # Modèles intermédiaires (peuvent être régénérés)
 ml/models/*.pkl
