@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+*.egg-info/
+dist/
+build/
+
+# Dataset (trop volumineux, peut être régénéré)
+data/raw/*.csv
+
+# Modèles intermédiaires (peuvent être régénérés)
+ml/models/*.pkl
+ml/models/*.joblib
+
+# Fichiers de test temporaires
+test_*.py
+test_*.html
+inspect_model.py
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+npm-debug.log*
+
+# Extension (fichiers temporaires Chrome)
+extension/*.crx
+extension/*.pem
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+*.ipynb
+
+# System files
+Thumbs.db
