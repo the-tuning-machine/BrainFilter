@@ -97,6 +97,25 @@
   }
 
   /**
+   * Détecte si un élément est un Short YouTube
+   */
+  function isShort(element) {
+    // Méthode 1 : Vérifier la structure HTML spécifique aux Shorts
+    if (element.querySelector('ytm-shorts-lockup-view-model') ||
+        element.querySelector('ytm-shorts-lockup-view-model-v2')) {
+      return true;
+    }
+
+    // Méthode 2 : Vérifier l'URL
+    const link = element.querySelector('a[href*="/shorts/"]');
+    if (link) {
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
    * Traite un élément vidéo
    */
   async function processVideoElement(element) {
@@ -107,6 +126,21 @@
 
     element.setAttribute('data-brainfilter-processed', 'true');
     stats.total++;
+
+    // Détection spéciale pour les Shorts
+    if (isShort(element)) {
+      // Filtrer directement tous les Shorts
+      const settings = await classifier.getSettings();
+      if (settings.enabled && settings.filteredCategories.includes('shorts')) {
+        // Vérifier l'heure
+        const currentHour = new Date().getHours();
+        if (currentHour < settings.allowedHourStart || currentHour >= settings.allowedHourEnd) {
+          filterVideo(element, 'shorts');
+          return;
+        }
+      }
+      return;
+    }
 
     const title = getVideoTitle(element);
     if (!title) {
