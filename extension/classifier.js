@@ -190,7 +190,8 @@ class YouTubeClassifier {
       enabled: true,
       allowedHourStart: 20, // 20h
       allowedHourEnd: 21,   // 21h
-      filteredCategories: ['jeux', 'divertissement', 'shorts']
+      filteredCategories: ['jeux', 'divertissement', 'shorts'],
+      blockedChannels: [] // Ajouter les chaînes bloquées aux paramètres par défaut
     };
 
     // Vérifier si chrome.storage est disponible

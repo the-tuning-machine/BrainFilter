@@ -88,6 +88,50 @@
   }
 
   /**
+   * Extrait le nom de la chaîne d'un élément vidéo YouTube
+   */
+  function getChannelName(element) {
+    // Attempt 1: Direct link within channel name component
+    let channelElement = element.querySelector('ytd-channel-name a, yt-formatted-string.ytd-channel-name, a.ytd-channel-name');
+    if (channelElement) {
+      console.log(`[BrainFilter] Channel found (ytd-channel-name): ${channelElement.textContent.trim()}`);
+      return channelElement.textContent.trim();
+    }
+
+    // Attempt 2: Channel name within byline (e.g., watch page, some grids)
+    channelElement = element.querySelector('div#byline-container a, ytd-video-meta-block #byline a');
+    if (channelElement) {
+      console.log(`[BrainFilter] Channel found (byline): ${channelElement.textContent.trim()}`);
+      return channelElement.textContent.trim();
+    }
+
+    // Attempt 3: Owner text (e.g., recommendations on watch page)
+    channelElement = element.querySelector('#owner-text a');
+    if (channelElement) {
+      console.log(`[BrainFilter] Channel found (owner-text): ${channelElement.textContent.trim()}`);
+      return channelElement.textContent.trim();
+    }
+
+    // Attempt 4: Compact video renderer channel name
+    channelElement = element.querySelector('ytd-compact-video-renderer .ytd-channel-name a');
+    if (channelElement) {
+      console.log(`[BrainFilter] Channel found (compact-video-renderer): ${channelElement.textContent.trim()}`);
+      return channelElement.textContent.trim();
+    }
+
+    // Attempt 5: Fallback - look for any link that might lead to a channel page
+    // This is less reliable as it might pick up other links
+    // channelElement = element.querySelector('a[href^="/@"], a[href*="/channel/"]');
+    // if (channelElement) {
+    //   console.log(`[BrainFilter] Channel found (generic link): ${channelElement.textContent.trim()}`);
+    //   return channelElement.textContent.trim();
+    // }
+
+    console.log('[BrainFilter] No channel name found for element.');
+    return null;
+  }
+
+  /**
    * Filtre (cache) un élément vidéo
    */
   function filterVideo(element, category) {
@@ -102,11 +146,12 @@
   function isShort(element) {
     // Méthode 1 : Vérifier la structure HTML spécifique aux Shorts
     if (element.querySelector('ytm-shorts-lockup-view-model') ||
-        element.querySelector('ytm-shorts-lockup-view-model-v2')) {
+        element.querySelector('ytm-shorts-lockup-view-model-v2') ||
+        element.querySelector('ytd-reel-shelf-renderer')) { // Ajouté pour couvrir plus de cas de shorts
       return true;
     }
 
-    // Méthode 2 : Vérifier l'URL
+    // Méthode 2 : Vérifier l'URL (si un lien est présent dans l'élément)
     const link = element.querySelector('a[href*="/shorts/"]');
     if (link) {
       return true;
@@ -127,20 +172,37 @@
     element.setAttribute('data-brainfilter-processed', 'true');
     stats.total++;
 
+    const settings = await classifier.getSettings();
+    const currentHour = new Date().getHours();
+
+    // Si le filtrage est désactivé
+    if (!settings.enabled) {
+      return;
+    }
+
+    // Vérifier si on est dans la plage horaire autorisée
+    const isAllowedTime = (currentHour >= settings.allowedHourStart && currentHour < settings.allowedHourEnd);
+
+
     // Détection spéciale pour les Shorts
     if (isShort(element)) {
-      // Filtrer directement tous les Shorts
-      const settings = await classifier.getSettings();
-      if (settings.enabled && settings.filteredCategories.includes('shorts')) {
-        // Vérifier l'heure
-        const currentHour = new Date().getHours();
-        if (currentHour < settings.allowedHourStart || currentHour >= settings.allowedHourEnd) {
-          filterVideo(element, 'shorts');
-          return;
-        }
+      if (settings.filteredCategories.includes('shorts') && !isAllowedTime) {
+        filterVideo(element, 'shorts');
       }
       return;
     }
+
+    // --- Filtrage par chaîne bloquée ---
+    const channelName = getChannelName(element);
+    if (channelName) {
+      const normalizedChannelName = channelName.toLowerCase();
+      if (settings.blockedChannels.map(c => c.toLowerCase()).includes(normalizedChannelName)) {
+        filterVideo(element, `channel: ${channelName}`);
+        return; // Bloqué par chaîne, pas besoin de vérifier le titre/catégorie
+      }
+    }
+    // --- Fin Filtrage par chaîne bloquée ---
+
 
     const title = getVideoTitle(element);
     if (!title) {
@@ -151,10 +213,10 @@
     // Log réduit (commenté pour production)
     // console.log('[BrainFilter] Analyse:', title.substring(0, 50) + '...');
 
-    // Vérifier si la vidéo doit être filtrée
-    const shouldFilter = await classifier.shouldFilter(title);
+    // Vérifier si la vidéo doit être filtrée par catégorie/titre
+    const shouldFilterByCategory = await classifier.shouldFilter(title, currentHour);
 
-    if (shouldFilter) {
+    if (shouldFilterByCategory) {
       const prediction = classifier.predict(title);
       filterVideo(element, prediction.category);
     }

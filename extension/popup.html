@@ -240,6 +240,18 @@
     </div>
   </div>
 
+  <div class="section">
+    <div class="section-title">Chaînes à bloquer strictement</div>
+    <p class="info">Les vidéos de ces chaînes seront toujours cachées, quel que soit le contenu ou l'heure.</p>
+    <div class="blocked-channels-input">
+      <input type="text" id="channelNameInput" placeholder="Nom de la chaîne YouTube">
+      <button id="addChannel">Ajouter</button>
+    </div>
+    <div id="blockedChannelsList" class="categories">
+      <!-- Les chaînes bloquées seront affichées ici -->
+    </div>
+  </div>
+
   <button id="save">Sauvegarder</button>
 
   <div id="status" class="status" style="display: none;"></div>
